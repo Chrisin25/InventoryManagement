@@ -1,5 +1,9 @@
 package com.assesment2.inventoryManagement.repository;
 
-public interface ProductRepo extends JPARepository<Product,String>{
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.assesment2.inventoryManagement.model.Product;
+
+public interface ProductRepo extends JpaRepository<Product,Integer>{
 
 }
