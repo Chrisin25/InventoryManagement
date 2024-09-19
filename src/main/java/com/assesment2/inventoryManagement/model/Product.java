@@ -1,6 +1,7 @@
 package com.assesment2.inventoryManagement.model;
 
 import com.assesment2.inventoryManagement.repository.CategoryRepo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -16,6 +17,7 @@ public class Product {
     Integer categoryId;
     @ManyToOne
     @JoinColumn(name = "categoryId",insertable=false, updatable=false)
+    @JsonIgnore
     private Category category;
     Double price;
     Integer quantity;
