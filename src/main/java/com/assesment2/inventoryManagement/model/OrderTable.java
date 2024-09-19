@@ -1,15 +1,14 @@
 package com.assesment2.inventoryManagement.model;
 
 import java.time.Instant;
-import java.util.Date;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "Order")
-public class Order {
+@Table(name = "OrderTable")
+public class OrderTable {
     @Id
     int orderId;
     int productId;
