@@ -3,10 +3,16 @@ package com.assesment2.inventoryManagement.repository;
 import com.assesment2.inventoryManagement.model.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-<<<<<<< HEAD
-public interface ProductRepo extends JpaRepository<Product,int> {
-=======
-public interface ProductRepo extends JpaRepository<Product,Integer> {
->>>>>>> 151a2d851989009d80705cf4255c559bcd4006dd
+import java.util.List;
 
+public interface ProductRepo extends JpaRepository<Product,Integer> {
+
+    public List<Product> findAllByName(String productName);
+    public List<Product> findAllByProductId(int productId);
+
+    List<Product> findAllByCategoryId(int categoryId);
+
+    List<Product> findAllByProductIdAndCategoryId(int productId, int categoryId);
+
+    void deleteByProductId(int productId);
 }
