@@ -2,7 +2,6 @@ package com.assesment2.inventoryManagement.service;
 
 import com.assesment2.inventoryManagement.model.Product;
 import com.assesment2.inventoryManagement.repository.CategoryRepo;
-import com.assesment2.inventoryManagement.repository.ProductRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
