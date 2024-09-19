@@ -1,66 +1,92 @@
 package com.assesment2.inventoryManagement.service;
 
-import com.assesment2.inventoryManagement.model.Category;
 import com.assesment2.inventoryManagement.model.Product;
 import com.assesment2.inventoryManagement.repository.CategoryRepo;
 import com.assesment2.inventoryManagement.repository.ProductRepo;
-import com.assesment2.inventoryManagement.response.ResponseMessageForUpdate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+
 @Service
 public class InventoryManagementService {
-
     @Autowired
-    private  ProductRepo productRepo;
-
-    @Autowired
-    private CategoryRepo categoryRepo;
-
-
+    ProductRepo productRepo;
+    CategoryRepo categoryRepo;
     public int addProduct(Product product) {
-        if (product.getCategoryId() != null) {
-            Category category = categoryRepo.findById(product.getCategoryId()).orElse(null);
-            product.setCategory(category);
+        //unique product name
+        if (!productRepo.findAllByName(product.getProductName()).isEmpty()) {
+            System.out.println("product already exist");
         }
-        productRepo.save(product);
+        //valid category
+        else if (categoryRepo.findAllById(product.getCategoryId()).isEmpty()) {
+            System.out.println("invalid category id");
+        }
+        // check price and qty is valid
+        else if (product.getPrice() <= 0) {
+            System.out.println("enter valid price");
+        }
+        else if (product.getQuantity() <= 0) {
+            System.out.println("enter valid quantity");
+        }
+        else{
+            productRepo.save(product);
+        }
         return product.getProductId();
     }
-
-    public int addCategory(Category category) {
-        categoryRepo.save(category);
-        return category.getCategoryId();
+    public List<Product> getProducts(Integer productId,Integer categoryId){
+        List<Product> products;
+        if(productId==null && categoryId==null){
+            products=productRepo.findAll();
+        }
+        else if(categoryId==null){
+            products=productRepo.findAllByProductId(productId);
+        }
+        else if(productId==null){
+            products=productRepo.findAllByCategoryId(categoryId);
+        }
+        else{
+            products=productRepo.findAllByProductIdAndCategoryId(productId,categoryId);
+        }
+        return products;
     }
-
-    public List<Product> getProducts(int productId, int categoryId) {
-        return null;
+    public void deleteProduct(int productId){
+        try{
+            productRepo.deleteByProductId(productId);
+        }
+        catch(Exception E){
+            System.out.println("cannot delete product:"+E.getLocalizedMessage());
+        }
     }
+    public void updateProduct(Integer productId,String productName,Integer categoryId,Integer price,Integer quantity){
+        if(productId==null || productRepo.findAllByProductId(productId).isEmpty()){
+            System.out.println("cannot update");
+        }
+        else{
+            Product product=productRepo.findAllByProductId(productId).get(0);
+            if(productName!=null && productRepo.findAllByName(productName).isEmpty()){
+                product.setProductName(productName);
+            }
+            if(categoryId!=null && categoryRepo.existsById(categoryId)){
+                product.setCategoryId(categoryId);
+            }
+            if(price!=null && price>0){
+                product.setPrice(Double.valueOf(price));
+            }
+            if(quantity!=null){
+                if(quantity>0){
+                    product.setQuantity(product.getQuantity()+quantity);
+                }
+                else if(product.getQuantity()+quantity>=0){
+                    product.setQuantity(product.getQuantity()+quantity);
+                }
+                else{
+                    System.out.println("product quantity cannot be updated");
+                }
+            }
+            productRepo.save(product);
+        }
 
-    public List<Category> getCategory(int categoryId) {
-        return  null;
-    }
-
-    public void updateProduct(int productId, String productName, int categoryId, double price, int quantity) {
-    }
-
-    public void updateCategory(int categoryId, String name) {
-    }
-
-    public void deleteProduct(int productId) {
-        
-    }
-
-    public void deleteCategory(int categoryId) {
-
-    }
-
-    public void orderProduct(int productId, int quantity, int userId) {
-    }
-
-    public void reStockProduct(int productId, int quantity, int userId) {
-        
     }
 }
