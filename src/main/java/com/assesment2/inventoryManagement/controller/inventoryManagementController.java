@@ -16,7 +16,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1")
-
 public class inventoryManagementController {
 
     @Autowired
@@ -41,17 +40,17 @@ public class inventoryManagementController {
     }
 
   //get product details
-    @GetMapping("/products")
+    @GetMapping("/product")
     public List<Product> getProducts(
-            @RequestParam(required = false) int productId,
-            @RequestParam(required = false) int categoryId) {
+            @RequestParam(required = false) Integer productId,
+            @RequestParam(required = false) Integer categoryId) {
         return inventoryManagementService.getProducts(productId,categoryId);
     }
 
     //get category details
     @GetMapping("/category")
     public List<Category> getCategory(
-            @RequestParam(required = false) int category_id){
+            @RequestParam(required = false) Integer category_id){
         return inventoryManagementService.getCategory(category_id);
     }
 
@@ -60,9 +59,9 @@ public class inventoryManagementController {
     public ResponseEntity<ResponseMessageForUpdate> updateProduct(
             @RequestParam int productId,
             @RequestParam(required = false) String productName,
-            @RequestParam(required = false) int categoryId,
-            @RequestParam(required = false) double price,
-            @RequestParam(required = false) int quantity) {
+            @RequestParam(required = false) Integer categoryId,
+            @RequestParam(required = false) Double price,
+            @RequestParam(required = false) Integer quantity) {
 
         inventoryManagementService.updateProduct(productId,productName,categoryId,price,quantity);
         return new ResponseEntity<>(new ResponseMessageForUpdate("Successfully updated product details"),HttpStatus.OK);
@@ -85,36 +84,49 @@ public class inventoryManagementController {
             @RequestParam int productId
     ){
         inventoryManagementService.deleteProduct(productId);
-        return new ResponseEntity<>(new ResponseMessage("Successfully deleted product"),HttpStatus.OK);
+        ResponseMessage responseMessage = new ResponseMessage();
+        responseMessage.setMessage("Successfully deleted product");
+
+        return new ResponseEntity<>(responseMessage,HttpStatus.OK);
     }
 
     //delete a category using its id
-    @DeleteMapping("/product")
+    @DeleteMapping("/category")
     public ResponseEntity<ResponseMessage> deleteCategory(
             @RequestParam int categoryId
     ){
         inventoryManagementService.deleteCategory(categoryId);
-        return new ResponseEntity<>(new ResponseMessage("Successfully deleted category"),HttpStatus.OK);
+        ResponseMessage responseMessage = new ResponseMessage();
+        responseMessage.setMessage("Successfully deleted category");
+
+        return new ResponseEntity<>(responseMessage,HttpStatus.OK);
+
     }
 
     //sell or buy a product
     @PutMapping("/orders")
     public ResponseEntity<ResponseMessage> orderProduct(
-            @RequestParam int productId,
-            @RequestParam int quantity,
-            @RequestParam int userId ){
+            @RequestParam Integer productId,
+            @RequestParam Integer quantity,
+            @RequestParam Integer userId ){
         inventoryManagementService.orderProduct(productId,quantity,userId);
-        return new ResponseEntity<>(new ResponseMessage("Successfully ordered"),HttpStatus.OK);
+        ResponseMessage responseMessage = new ResponseMessage();
+        responseMessage.setMessage("Successfully ordered");
+
+        return new ResponseEntity<>(responseMessage,HttpStatus.OK);
     }
 
     //restock a product
-    @PutMapping("/orders")
+    @PutMapping("/restock")
     public ResponseEntity<ResponseMessage> reStockProduct(
-            @RequestParam int productId,
-            @RequestParam int quantity,
-            @RequestParam int userId ){
+            @RequestParam Integer productId,
+            @RequestParam Integer quantity,
+            @RequestParam Integer userId ){
         inventoryManagementService.reStockProduct(productId,quantity,userId);
-        return new ResponseEntity<>(new ResponseMessage("Successfully restocked"),HttpStatus.OK);
+        ResponseMessage responseMessage = new ResponseMessage();
+        responseMessage.setMessage("Successfully restocked");
+
+        return new ResponseEntity<>(responseMessage,HttpStatus.OK);
     }
 
 
