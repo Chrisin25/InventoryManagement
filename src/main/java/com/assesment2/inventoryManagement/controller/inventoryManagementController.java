@@ -30,7 +30,7 @@ public class inventoryManagementController {
         id = inventoryManagementService.addProduct(product);
         return new ResponseEntity<>(new ResponseMessageForCreate("Successfully created",id), HttpStatus.CREATED);
     }
-
+/*
     //add a category
     @PostMapping("/category")
     public ResponseEntity<ResponseMessageForCreate> addCategory(@RequestBody Category category)
@@ -39,35 +39,35 @@ public class inventoryManagementController {
         id = inventoryManagementService.addCategory(category);
         return new ResponseEntity<>(new ResponseMessageForCreate("Successfully created",id), HttpStatus.CREATED);
     }
-
+*/
   //get product details
     @GetMapping("/products")
     public List<Product> getProducts(
-            @RequestParam(required = false) int productId,
-            @RequestParam(required = false) int categoryId) {
+            @RequestParam(required = false) Integer productId,
+            @RequestParam(required = false) Integer categoryId) {
         return inventoryManagementService.getProducts(productId,categoryId);
     }
-
+/*
     //get category details
     @GetMapping("/category")
     public List<Category> getCategory(
             @RequestParam(required = false) int category_id){
         return inventoryManagementService.getCategory(category_id);
     }
-
+*/
     //change product details
     @PutMapping("/product")
     public ResponseEntity<ResponseMessageForUpdate> updateProduct(
             @RequestParam int productId,
             @RequestParam(required = false) String productName,
-            @RequestParam(required = false) int categoryId,
-            @RequestParam(required = false) double price,
-            @RequestParam(required = false) int quantity) {
+            @RequestParam(required = false) Integer categoryId,
+            @RequestParam(required = false) Double price,
+            @RequestParam(required = false) Integer quantity) {
 
         inventoryManagementService.updateProduct(productId,productName,categoryId,price,quantity);
         return new ResponseEntity<>(new ResponseMessageForUpdate("Successfully updated product details"),HttpStatus.OK);
     }
-
+/*
     //change category name
     @PutMapping("/category")
     public ResponseEntity<ResponseMessageForUpdate> updateCategory(
@@ -78,7 +78,7 @@ public class inventoryManagementController {
         inventoryManagementService.updateCategory(categoryId,name);
         return new ResponseEntity<>(new ResponseMessageForUpdate("Successfully updated category name"),HttpStatus.OK);
     }
-
+*/
     //delete a product using its id
     @DeleteMapping("/product")
     public ResponseEntity<ResponseMessage> deleteProduct(
@@ -87,7 +87,7 @@ public class inventoryManagementController {
         inventoryManagementService.deleteProduct(productId);
         return new ResponseEntity<>(new ResponseMessage("Successfully deleted product"),HttpStatus.OK);
     }
-
+/*
     //delete a category using its id
     @DeleteMapping("/product")
     public ResponseEntity<ResponseMessage> deleteCategory(
@@ -117,7 +117,7 @@ public class inventoryManagementController {
         return new ResponseEntity<>(new ResponseMessage("Successfully restocked"),HttpStatus.OK);
     }
 
-
+*/
 
 
 
