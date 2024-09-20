@@ -41,7 +41,7 @@ public class inventoryManagementController {
     }
 */
   //get product details
-    @GetMapping("/products")
+    @GetMapping("/product")
     public List<Product> getProducts(
             @RequestParam(required = false) Integer productId,
             @RequestParam(required = false) Integer categoryId) {

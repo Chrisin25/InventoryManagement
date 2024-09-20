@@ -55,6 +55,7 @@ public class InventoryManagementService {
     }
     @Transactional
     public void deleteProduct(int productId){
+        //validate id
         try{
             productRepo.deleteByProductId(productId);
         }
