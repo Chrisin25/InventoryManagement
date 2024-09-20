@@ -2,17 +2,16 @@ package com.assesment2.inventoryManagement.model;
 
 import java.time.Instant;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "OrderTable")
 public class OrderTable {
     @Id
-    int orderId;
-    int productId;
-    int userId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    Integer orderId;
+    Integer productId;
+    Integer userId;
     Instant orderDate;
 
     public int getOrderId() {

@@ -16,7 +16,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1")
-
 public class inventoryManagementController {
 
     @Autowired
@@ -30,7 +29,7 @@ public class inventoryManagementController {
         id = inventoryManagementService.addProduct(product);
         return new ResponseEntity<>(new ResponseMessageForCreate("Successfully created",id), HttpStatus.CREATED);
     }
-/*
+
     //add a category
     @PostMapping("/category")
     public ResponseEntity<ResponseMessageForCreate> addCategory(@RequestBody Category category)
@@ -39,7 +38,7 @@ public class inventoryManagementController {
         id = inventoryManagementService.addCategory(category);
         return new ResponseEntity<>(new ResponseMessageForCreate("Successfully created",id), HttpStatus.CREATED);
     }
-*/
+
   //get product details
     @GetMapping("/product")
     public List<Product> getProducts(
@@ -47,14 +46,14 @@ public class inventoryManagementController {
             @RequestParam(required = false) Integer categoryId) {
         return inventoryManagementService.getProducts(productId,categoryId);
     }
-/*
+
     //get category details
     @GetMapping("/category")
     public List<Category> getCategory(
-            @RequestParam(required = false) int category_id){
+            @RequestParam(required = false) Integer category_id){
         return inventoryManagementService.getCategory(category_id);
     }
-*/
+
     //change product details
     @PutMapping("/product")
     public ResponseEntity<ResponseMessageForUpdate> updateProduct(
@@ -67,7 +66,7 @@ public class inventoryManagementController {
         inventoryManagementService.updateProduct(productId,productName,categoryId,price,quantity);
         return new ResponseEntity<>(new ResponseMessageForUpdate("Successfully updated product details"),HttpStatus.OK);
     }
-/*
+
     //change category name
     @PutMapping("/category")
     public ResponseEntity<ResponseMessageForUpdate> updateCategory(
@@ -78,46 +77,59 @@ public class inventoryManagementController {
         inventoryManagementService.updateCategory(categoryId,name);
         return new ResponseEntity<>(new ResponseMessageForUpdate("Successfully updated category name"),HttpStatus.OK);
     }
-*/
+
     //delete a product using its id
     @DeleteMapping("/product")
     public ResponseEntity<ResponseMessage> deleteProduct(
             @RequestParam int productId
     ){
         inventoryManagementService.deleteProduct(productId);
-        return new ResponseEntity<>(new ResponseMessage("Successfully deleted product"),HttpStatus.OK);
+        ResponseMessage responseMessage = new ResponseMessage();
+        responseMessage.setMessage("Successfully deleted product");
+
+        return new ResponseEntity<>(responseMessage,HttpStatus.OK);
     }
-/*
+
     //delete a category using its id
-    @DeleteMapping("/product")
+    @DeleteMapping("/category")
     public ResponseEntity<ResponseMessage> deleteCategory(
             @RequestParam int categoryId
     ){
         inventoryManagementService.deleteCategory(categoryId);
-        return new ResponseEntity<>(new ResponseMessage("Successfully deleted category"),HttpStatus.OK);
+        ResponseMessage responseMessage = new ResponseMessage();
+        responseMessage.setMessage("Successfully deleted category");
+
+        return new ResponseEntity<>(responseMessage,HttpStatus.OK);
+
     }
 
     //sell or buy a product
     @PutMapping("/orders")
     public ResponseEntity<ResponseMessage> orderProduct(
-            @RequestParam int productId,
-            @RequestParam int quantity,
-            @RequestParam int userId ){
+            @RequestParam Integer productId,
+            @RequestParam Integer quantity,
+            @RequestParam Integer userId ){
         inventoryManagementService.orderProduct(productId,quantity,userId);
-        return new ResponseEntity<>(new ResponseMessage("Successfully ordered"),HttpStatus.OK);
+        ResponseMessage responseMessage = new ResponseMessage();
+        responseMessage.setMessage("Successfully ordered");
+
+        return new ResponseEntity<>(responseMessage,HttpStatus.OK);
     }
 
     //restock a product
-    @PutMapping("/orders")
+    @PutMapping("/restock")
     public ResponseEntity<ResponseMessage> reStockProduct(
-            @RequestParam int productId,
-            @RequestParam int quantity,
-            @RequestParam int userId ){
+            @RequestParam Integer productId,
+            @RequestParam Integer quantity,
+            @RequestParam Integer userId ){
         inventoryManagementService.reStockProduct(productId,quantity,userId);
-        return new ResponseEntity<>(new ResponseMessage("Successfully restocked"),HttpStatus.OK);
+        ResponseMessage responseMessage = new ResponseMessage();
+        responseMessage.setMessage("Successfully restocked");
+
+        return new ResponseEntity<>(responseMessage,HttpStatus.OK);
     }
 
-*/
+
 
 
 

@@ -2,20 +2,30 @@ package com.assesment2.inventoryManagement.repository;
 
 import com.assesment2.inventoryManagement.model.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.Query;
 
 
 import java.util.List;
-@Repository
+
 public interface ProductRepo extends JpaRepository<Product,Integer> {
 
 
-    public List<Product> findAllByProductName(String productName);
-    public List<Product> findAllByProductId(int productId);
 
-    List<Product> findAllByCategoryId(int categoryId);
+    public List<Product> findAllByProductId(Integer productId);
 
-    List<Product> findAllByProductIdAndCategoryId(int productId, int categoryId);
 
-    void deleteByProductId(int productId);
+    List<Product> findAllByCategoryId(Integer categoryId);
+
+    List<Product> findAllByProductIdAndCategoryId(Integer productId, Integer categoryId);
+
+    void deleteByProductId(Integer productId);
+
+
+
+
+    List<Product> findByProductId(Integer productId);
+
+    boolean existsByProductName(String productName);
+
+    boolean existsByProductId(Integer productId);
 }
