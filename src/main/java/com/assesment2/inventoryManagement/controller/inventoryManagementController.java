@@ -50,8 +50,8 @@ public class inventoryManagementController {
     //get category details
     @GetMapping("/category")
     public List<Category> getCategory(
-            @RequestParam(required = false) Integer category_id){
-        return inventoryManagementService.getCategory(category_id);
+            @RequestParam(required = false) Integer categoryId){
+        return inventoryManagementService.getCategory(categoryId);
     }
 
     //change product details

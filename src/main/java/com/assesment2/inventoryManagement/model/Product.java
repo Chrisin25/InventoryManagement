@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 @Entity
 @Table(name="Product")
@@ -21,6 +23,9 @@ public class Product {
     private Category category;
     Double price;
     Integer quantity;
+    @OneToMany(mappedBy = "productId", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @JsonIgnore
+    private List<OrderTable> orderTables;
 
     public Integer getProductId() {
         return productId;
