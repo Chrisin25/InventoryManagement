@@ -13,7 +13,6 @@ public interface ProductRepo extends JpaRepository<Product,Integer> {
 
     public List<Product> findAllByProductId(Integer productId);
 
-
     List<Product> findAllByCategoryId(Integer categoryId);
 
     List<Product> findAllByProductIdAndCategoryId(Integer productId, Integer categoryId);
