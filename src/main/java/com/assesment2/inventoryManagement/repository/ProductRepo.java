@@ -20,10 +20,7 @@ public interface ProductRepo extends JpaRepository<Product,Integer> {
 
     void deleteByProductId(Integer productId);
 
-
-
-
-    List<Product> findByProductId(Integer productId);
+    Product findByProductId(Integer productId);
 
     boolean existsByProductName(String productName);
 

@@ -11,7 +11,13 @@ public class OrderTable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer orderId;
     Integer productId;
+    @ManyToOne
+    @JoinColumn(name = "productId",insertable=false, updatable=false)
+    private Product product;
     Integer userId;
+    @ManyToOne
+    @JoinColumn(name = "userId",insertable=false, updatable=false)
+    private User user;
     Instant orderDate;
 
     public int getOrderId() {

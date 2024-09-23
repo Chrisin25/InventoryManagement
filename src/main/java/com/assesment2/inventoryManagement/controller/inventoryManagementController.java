@@ -5,7 +5,6 @@ import com.assesment2.inventoryManagement.model.Category;
 import com.assesment2.inventoryManagement.model.Product;
 import com.assesment2.inventoryManagement.response.ResponseMessage;
 import com.assesment2.inventoryManagement.response.ResponseMessageForCreate;
-import com.assesment2.inventoryManagement.response.ResponseMessageForUpdate;
 import com.assesment2.inventoryManagement.service.InventoryManagementService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -50,13 +49,13 @@ public class inventoryManagementController {
     //get category details
     @GetMapping("/category")
     public List<Category> getCategory(
-            @RequestParam(required = false) Integer category_id){
-        return inventoryManagementService.getCategory(category_id);
+            @RequestParam(required = false) Integer categoryId){
+        return inventoryManagementService.getCategory(categoryId);
     }
 
     //change product details
     @PutMapping("/product")
-    public ResponseEntity<ResponseMessageForUpdate> updateProduct(
+    public ResponseEntity<ResponseMessage> updateProduct(
             @RequestParam int productId,
             @RequestParam(required = false) String productName,
             @RequestParam(required = false) Integer categoryId,
@@ -64,18 +63,18 @@ public class inventoryManagementController {
             @RequestParam(required = false) Integer quantity) {
 
         inventoryManagementService.updateProduct(productId,productName,categoryId,price,quantity);
-        return new ResponseEntity<>(new ResponseMessageForUpdate("Successfully updated product details"),HttpStatus.OK);
+        return new ResponseEntity<>(new ResponseMessage("Successfully updated product details"),HttpStatus.OK);
     }
 
     //change category name
     @PutMapping("/category")
-    public ResponseEntity<ResponseMessageForUpdate> updateCategory(
+    public ResponseEntity<ResponseMessage> updateCategory(
             @RequestParam int categoryId,
             @RequestParam String name
     ){
 
         inventoryManagementService.updateCategory(categoryId,name);
-        return new ResponseEntity<>(new ResponseMessageForUpdate("Successfully updated category name"),HttpStatus.OK);
+        return new ResponseEntity<>(new ResponseMessage("Successfully updated category name"),HttpStatus.OK);
     }
 
     //delete a product using its id
@@ -84,8 +83,8 @@ public class inventoryManagementController {
             @RequestParam int productId
     ){
         inventoryManagementService.deleteProduct(productId);
-        ResponseMessage responseMessage = new ResponseMessage();
-        responseMessage.setMessage("Successfully deleted product");
+        ResponseMessage responseMessage = new ResponseMessage("Successfully deleted product");
+
 
         return new ResponseEntity<>(responseMessage,HttpStatus.OK);
     }
@@ -96,8 +95,7 @@ public class inventoryManagementController {
             @RequestParam int categoryId
     ){
         inventoryManagementService.deleteCategory(categoryId);
-        ResponseMessage responseMessage = new ResponseMessage();
-        responseMessage.setMessage("Successfully deleted category");
+        ResponseMessage responseMessage = new ResponseMessage("Successfully deleted category");
 
         return new ResponseEntity<>(responseMessage,HttpStatus.OK);
 
@@ -110,8 +108,7 @@ public class inventoryManagementController {
             @RequestParam Integer quantity,
             @RequestParam Integer userId ){
         inventoryManagementService.orderProduct(productId,quantity,userId);
-        ResponseMessage responseMessage = new ResponseMessage();
-        responseMessage.setMessage("Successfully ordered");
+        ResponseMessage responseMessage = new ResponseMessage("Successfully ordered");
 
         return new ResponseEntity<>(responseMessage,HttpStatus.OK);
     }
@@ -123,8 +120,7 @@ public class inventoryManagementController {
             @RequestParam Integer quantity,
             @RequestParam Integer userId ){
         inventoryManagementService.reStockProduct(productId,quantity,userId);
-        ResponseMessage responseMessage = new ResponseMessage();
-        responseMessage.setMessage("Successfully restocked");
+        ResponseMessage responseMessage = new ResponseMessage("Successfully restocked");
 
         return new ResponseEntity<>(responseMessage,HttpStatus.OK);
     }
