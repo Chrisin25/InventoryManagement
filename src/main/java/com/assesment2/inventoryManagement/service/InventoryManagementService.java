@@ -1,5 +1,6 @@
 package com.assesment2.inventoryManagement.service;
 
+import com.assesment2.inventoryManagement.InMemoryCache.InMemoryCache;
 import com.assesment2.inventoryManagement.model.Category;
 import com.assesment2.inventoryManagement.model.OrderTable;
 import com.assesment2.inventoryManagement.model.Product;
@@ -10,7 +11,6 @@ import com.assesment2.inventoryManagement.repository.ProductRepo;
 import com.assesment2.inventoryManagement.repository.UserRepo;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -31,6 +31,7 @@ public class InventoryManagementService {
     @Autowired
     OrderRepo orderRepo;
 
+
     @Transactional
     public int addProduct(Product product) {
         //unique product name
@@ -50,24 +51,59 @@ public class InventoryManagementService {
             throw new IllegalArgumentException("Enter valid quantity");
         }
         else{
-            productRepo.save(product);
-            return product.getProductId();
+            List<Product> products = InMemoryCache.getAllProducts();
+            if(!products.isEmpty())
+            {
+                productRepo.save(product);
+                InMemoryCache.putProduct(product);
+                return product.getProductId();
+            }
+            else {
+                productRepo.save(product);
+                return product.getProductId();
+            }
         }
 
     }
 
     public List<Product> getProducts(Integer productId,Integer categoryId){
-        List<Product> products;
+        List<Product> products = new ArrayList<>();
+        Product product;
         if(productId==null && categoryId==null){
-             products = productRepo.findAll();
+            products = InMemoryCache.getAllProducts();
+            if(products.isEmpty()) {
+                products = productRepo.findAll();
+                InMemoryCache.putAllProducts(products);
+            }
         }
         else if(categoryId==null){
-
-            products =productRepo.findByProductId(productId);
-
+            product =InMemoryCache.getProduct(productId);
+            if(product==null) {
+                System.out.println("product empty in cache");
+                product = productRepo.findByProductId(productId);
+                if(product==null) {
+                    throw new IllegalArgumentException("Invalid Product ID");
+                }
+                else {
+                    InMemoryCache.putProduct(product);
+                    products.add(product);
+                }
+            }
+            else {
+                products.add(product);
+            }
         }
         else if(productId==null){
-             products=productRepo.findAllByCategoryId(categoryId);
+            if(!categoryRepo.existsById(categoryId))
+                throw new IllegalArgumentException("Invalid category ID");
+            products=InMemoryCache.getProductsByCategoryId(categoryId);
+            if(products==null) {
+                products = productRepo.findAllByCategoryId(categoryId);
+                if(products.isEmpty())
+                    throw new IllegalArgumentException("No products found");
+                InMemoryCache.putAllProducts(products);
+            }
+
         }
         else{
             products=productRepo.findAllByProductIdAndCategoryId(productId,categoryId);
@@ -82,7 +118,16 @@ public class InventoryManagementService {
         }
         else {
             try {
-                productRepo.deleteByProductId(productId);
+                List<Product> products = InMemoryCache.getAllProducts();
+                if(!products.isEmpty())
+                {
+                    productRepo.deleteByProductId(productId);
+                    InMemoryCache.deleteProduct(productId);
+                }
+                else {
+                    productRepo.deleteByProductId(productId);
+                }
+
 
             } catch (Exception E) {
                 System.out.println("cannot delete product:" + E.getLocalizedMessage());
@@ -97,6 +142,7 @@ public class InventoryManagementService {
 
         }
         else{
+            String flag="no";
             if(productName==null && categoryId==null && price==null && quantity==null)
             {
                 throw new IllegalArgumentException("Enter the details to be updated");
@@ -116,6 +162,7 @@ public class InventoryManagementService {
                 if (categoryRepo.existsById(categoryId)) {
                     if(!Objects.equals(product.getCategoryId(), categoryId)) {
                         product.setCategoryId(categoryId);
+                        flag = "yes";
                     }
                     else
                     {
@@ -149,6 +196,7 @@ public class InventoryManagementService {
                 }
             }
             productRepo.save(product);
+            InMemoryCache.updateProduct(product,flag);
         }
 
     }
@@ -166,25 +214,35 @@ public class InventoryManagementService {
                 throw new IllegalArgumentException("Category already exists");
             } else {
                 categoryRepo.save(category);
+                List<Category> categories = InMemoryCache.getAllCategories();
+                if(!categories.isEmpty()) {
+                    InMemoryCache.putCategory(category);
+                }
             }
             return category.getCategoryId();
         }
     }
 
-    public List<Category> getCategory(Integer categoryId) {
+    public  List<Category> getCategory(Integer categoryId) {
         List<Category> categories;
-        if(categoryId==null)
-        {
-            categories = categoryRepo.findAll();
-        }
-        else
-        {
-            if(categoryRepo.existsById(categoryId)) {
-                categories = categoryRepo.findAllByCategoryId(categoryId);
+        if(categoryId == null) {
+            categories = InMemoryCache.getAllCategories();
+            if(categories.isEmpty()) {
+                categories = categoryRepo.findAll();
+                InMemoryCache.putAllCategories(categories);
             }
-            else
-            {
-                throw new IllegalArgumentException("Invalid Category ID");
+        } else {
+            Category category = InMemoryCache.getCategory(categoryId);
+            if(category != null) {
+                categories = new ArrayList<>();
+                categories.add(category);
+            } else {
+                if(categoryRepo.existsById(categoryId)) {
+                    categories = categoryRepo.findAllByCategoryId(categoryId);
+                    InMemoryCache.putAllCategories(categories);
+                } else {
+                    throw new IllegalArgumentException("Invalid Category ID");
+                }
             }
         }
         return categories;
@@ -203,6 +261,10 @@ public class InventoryManagementService {
                 Category newCategory = categoryRepo.findAllByCategoryId(categoryId).get(0);
                 newCategory.setCategoryName(name);
                 categoryRepo.save(newCategory);
+                Category categoryCache = InMemoryCache.getCategory(categoryId);
+                if (categoryCache != null) {
+                    InMemoryCache.updateCategory(newCategory);
+                }
             }
         }
     }
@@ -223,6 +285,7 @@ public class InventoryManagementService {
                 else
                 {
                     categoryRepo.deleteById(categoryId);
+                    InMemoryCache.deleteCategory(categoryId);
                 }
         }
     }
@@ -249,7 +312,7 @@ public class InventoryManagementService {
                      if(userRole.equalsIgnoreCase("buyer"))
                      {
                          OrderTable order = new OrderTable();
-                         Product product = productRepo.findByProductId(productId).get(0);
+                         Product product = productRepo.findByProductId(productId);
                          Integer productQuantity = product.getQuantity();
                          if(productQuantity - quantity >= 0) {
                              order.setProductId(productId);
@@ -259,6 +322,12 @@ public class InventoryManagementService {
                              product.setQuantity(productQuantity - quantity);
 
                              orderRepo.save(order);
+                             productRepo.save(product);
+                             Product productCache = InMemoryCache.getProductById(productId);
+                             if(productCache!=null)
+                             {
+                                 InMemoryCache.updateProductQuantity(product);
+                             }
                          }
                          else {
                              throw new IllegalArgumentException("Insufficient product quantity. Available quantity: " + productQuantity);
@@ -294,11 +363,16 @@ public class InventoryManagementService {
                 {
                     User user = users.get();
                     String userRole = user.getRole();
-                    Product product = productRepo.findByProductId(productId).get(0);
+                    Product product = productRepo.findByProductId(productId);
                     if(userRole.equalsIgnoreCase("seller"))
                     {
                         product.setQuantity(product.getQuantity() + quantity);
                         productRepo.save(product);
+                        Product productCache = InMemoryCache.getProductById(productId);
+                        if(productCache!=null)
+                        {
+                            InMemoryCache.updateProductQuantity(product);
+                        }
                     }
                     else
                     {

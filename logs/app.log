@@ -1,0 +1,4 @@
+2024-09-20T09:09:48.901+05:30  WARN 7224 --- [InventoryManagement] [HikariPool-1 housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=11h53m39s939ms526µs800ns).
+2024-09-20T09:17:08.459+05:30  INFO 7224 --- [InventoryManagement] [SpringApplicationShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2024-09-20T09:17:08.464+05:30  INFO 7224 --- [InventoryManagement] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2024-09-20T09:17:08.494+05:30  INFO 7224 --- [InventoryManagement] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
