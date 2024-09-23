@@ -36,11 +36,11 @@ public class InventoryManagementService {
     public int addProduct(Product product) {
         //unique product name
 
-        if (!productRepo.findAllByProductName(product.getProductName()).isEmpty()) {
+        if (productRepo.existsByProductName(product.getProductName())) {
             throw new IllegalArgumentException("Product name already exists");
         }
         //valid category
-        else if (categoryRepo.findAllByCategoryId(product.getCategoryId()).isEmpty()) {
+        else if (!categoryRepo.existsByCategoryId(product.getCategoryId())) {
             throw new IllegalArgumentException("Invalid category id");
         }
         // check price and qty is valid
@@ -113,7 +113,7 @@ public class InventoryManagementService {
 
     @Transactional
     public void deleteProduct(Integer productId){
-        if(productRepo.findAllByProductId(productId).isEmpty()) {
+        if(!productRepo.existsByProductId(productId)) {
             throw new IllegalArgumentException("Invalid product ID");
         }
         else {
@@ -137,7 +137,7 @@ public class InventoryManagementService {
 
     @Transactional
     public void updateProduct(Integer productId,String productName,Integer categoryId,Double price,Integer quantity){
-        if(productId==null || productRepo.findAllByProductId(productId).isEmpty()){
+        if(productId==null || !productRepo.existsByProductId(productId)){
             throw new IllegalArgumentException("Invalid Product ID");
 
         }
@@ -147,9 +147,9 @@ public class InventoryManagementService {
             {
                 throw new IllegalArgumentException("Enter the details to be updated");
             }
-            Product product=productRepo.findAllByProductId(productId).get(0);
+            Product product=productRepo.findAllByProductId(productId).get(0);    //
             if(productName!=null) {
-                if(productRepo.findAllByProductName(productName).isEmpty()) {
+                if(!productRepo.existsByProductName(productName)) {
                     product.setProductName(productName);
                 }
                 else
@@ -292,7 +292,7 @@ public class InventoryManagementService {
 
     @Transactional
     public void orderProduct(Integer productId, Integer quantity, Integer userId) {
-        if(productId==null || productRepo.findAllByProductId(productId).isEmpty()){
+        if(productId==null || !productRepo.existsByProductId(productId)){
             throw new IllegalArgumentException("Invalid Product ID");
         }
         else
@@ -347,7 +347,7 @@ public class InventoryManagementService {
     }
 
     public void reStockProduct(Integer productId, Integer quantity, Integer userId) {
-        if(productId==null || productRepo.findAllByProductId(productId).isEmpty()){
+        if(productId==null || !productRepo.existsByProductId(productId)){
             throw new IllegalArgumentException("Invalid Product ID");
         }
         else

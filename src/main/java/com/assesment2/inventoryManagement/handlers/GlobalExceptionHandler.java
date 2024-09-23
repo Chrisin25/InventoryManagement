@@ -13,29 +13,25 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ResponseMessage> handleIllegalArgumentException(IllegalArgumentException ex) {
-        ResponseMessage responseMessage = new ResponseMessage();
-        responseMessage.setMessage(ex.getMessage());
+        ResponseMessage responseMessage = new ResponseMessage(ex.getMessage());
         return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ResponseMessage> handleGenericException(Exception ex) {
-        ResponseMessage responseMessage = new ResponseMessage();
-        responseMessage.setMessage("An unexpected error occurred: " + ex.getMessage());
+        ResponseMessage responseMessage = new ResponseMessage("An unexpected error occurred: " + ex.getMessage());
         return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ResponseMessage> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        ResponseMessage responseMessage = new ResponseMessage();
-        responseMessage.setMessage("Validation failed: " + ex.getMessage());
+        ResponseMessage responseMessage = new ResponseMessage("Validation failed: " + ex.getMessage());
         return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ResponseMessage> handleArgumentMismatchExceptions(MethodArgumentTypeMismatchException ex) {
-        ResponseMessage responseMessage = new ResponseMessage();
-        responseMessage.setMessage("Input cannot be empty");
+        ResponseMessage responseMessage = new ResponseMessage("Input cannot be empty");
         return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
     }
 }
