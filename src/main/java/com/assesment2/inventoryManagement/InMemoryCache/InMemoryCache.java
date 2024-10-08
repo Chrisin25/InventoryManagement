@@ -3,131 +3,112 @@ package com.assesment2.inventoryManagement.InMemoryCache;
 import com.assesment2.inventoryManagement.model.Category;
 import com.assesment2.inventoryManagement.model.Product;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class InMemoryCache {
-    private static final Map<Integer,Product> productCache = new HashMap<>();
-    private static final Map<Integer, Category> categoryCache = new HashMap<>();
-    private static final Map<Integer, List<Product>> categoryIdCache = new HashMap<>();
+    private static final int MAX_CACHE_SIZE = 15;
+    private static final ConcurrentHashMap<Integer, Product> productCache = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Integer, Long> productTimestamps = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Integer, Category> categoryCache = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Integer, Long> categoryTimestamps = new ConcurrentHashMap<>();
 
-    public static void putProduct(Product product)
-    {
-        productCache.put(product.getProductId(),product);
-        if (categoryIdCache.containsKey(product.getCategoryId())) {
-            categoryIdCache.get(product.getCategoryId()).add(product);
-        } else {
-            List<Product> productList = new ArrayList<>();
-            productList.add(product);
-            categoryIdCache.put(product.getCategoryId(), productList);
+    public static void putProduct(Product product) {
+
+        if(productCache.containsKey(product.getProductId())){
+            productCache.remove(product.getProductId());
+        } else if (productCache.size() >= MAX_CACHE_SIZE) {
+            Integer oldestProductId = getOldestProductId();
+            productCache.remove(oldestProductId);
+            productTimestamps.remove(oldestProductId);
         }
+        productCache.put(product.getProductId(), product);
+        productTimestamps.put(product.getProductId(),System.currentTimeMillis());
+
     }
 
-    public static void updateProduct(Product product,String choice)
-    {
-        productCache.put(product.getProductId(),product);
-        if(choice.equalsIgnoreCase("no")) {
-            categoryIdCache.get(product.getCategoryId()).remove(product);
-            categoryIdCache.get(product.getCategoryId()).add(product);
-        }
-        else
-        {
-            Integer categoryId = product.getCategoryId();
-
-            categoryIdCache.get(categoryId).remove(product);
-            categoryIdCache.get(product.getCategoryId()).add(product);
-        }
-    }
-
-    public static Product getProduct(Integer productId)
-    {
-        return productCache.get(productId);
-    }
-
-    public static List<Product> getAllProducts() {
-        return new ArrayList<>(productCache.values());
-    }
-
-    public static void putCategory(Category category) {
-        categoryCache.put(category.getCategoryId(), category);
-        categoryIdCache.putIfAbsent(category.getCategoryId(), new ArrayList<>());
-    }
-
-    public static Category getCategory(Integer categoryId)
-    {
-        return categoryCache.get(categoryId);
-    }
-
-    public static void putAllProducts(List<Product> products) {
-        for (Product product : products) {
-            productCache.put(product.getProductId(), product);
-            if (categoryIdCache.containsKey(product.getCategoryId())) {
-                categoryIdCache.get(product.getCategoryId()).add(product);
-            } else {
-                List<Product> productList = new ArrayList<>();
-                productList.add(product);
-                categoryIdCache.put(product.getCategoryId(), productList);
-            }
-        }
+    public static void updateProduct(Product product) {
+        putProduct(product);
     }
 
     public static Product getProductById(Integer productId) {
-        return productCache.get(productId);
-    }
-
-    public static List<Product> getProductsByCategoryId(Integer categoryId) {
-        return categoryIdCache.get(categoryId);
+        Product product = productCache.get(productId);
+        if(product != null){
+            productTimestamps.put(productId, System.currentTimeMillis());
+        }
+        return product;
     }
 
     public static void deleteProduct(Integer productId) {
         Product product = productCache.get(productId);
         if (product != null) {
             productCache.remove(productId);
-            if (categoryIdCache.containsKey(product.getCategoryId())) {
-                categoryIdCache.get(product.getCategoryId()).remove(product);
-            }
         }
     }
 
 
-    public static List<Category> getAllCategories() {
-        return new ArrayList<>(categoryCache.values());
+    public static void putCategory(Category category) {
+
+        if(categoryCache.containsKey(category.getCategoryId())){
+            categoryCache.remove(category.getCategoryId());
+        } else if (categoryCache.size() >= MAX_CACHE_SIZE) {
+            Integer oldestCategoryId = getOldestCategoryId();
+            categoryCache.remove(oldestCategoryId);
+            categoryTimestamps.remove(oldestCategoryId);
+        }
+        categoryCache.put(category.getCategoryId(), category);
+        categoryTimestamps.put(category.getCategoryId(),System.currentTimeMillis());
+
     }
 
-    public static void putAllCategories(List<Category> categories) {
-        for (Category category : categories) {
-            categoryCache.put(category.getCategoryId(), category);
+    public static Category getCategory(Integer categoryId) {
+        Category category = categoryCache.get(categoryId);
+        if(category != null){
+            categoryTimestamps.put(categoryId, System.currentTimeMillis());
         }
+        return category;
     }
 
     public static void updateCategory(Category category) {
-        categoryCache.put(category.getCategoryId(), category);
+        putCategory(category);
     }
 
     public static void deleteCategory(Integer categoryId) {
         Category category = categoryCache.get(categoryId);
         if (category != null) {
             categoryCache.remove(categoryId);
-            categoryIdCache.remove(categoryId);
         }
     }
 
-
     public static void updateProductQuantity(Product product) {
+        putProduct(product);
+    }
 
-        productCache.put(product.getProductId(), product);
+    private static Integer getOldestProductId() {
+        Integer oldestProductId = null;
+        Long oldestTimeStamp = Long.MAX_VALUE;
 
-
-        if (categoryIdCache.containsKey(product.getCategoryId())) {
-            List<Product> productList = categoryIdCache.get(product.getCategoryId());
-            for (int i = 0; i < productList.size(); i++) {
-                if (productList.get(i).getProductId().equals(product.getProductId())) {
-                    productList.set(i, product);
-                    break;
-                }
+        for(Map.Entry<Integer,Long> entry : productTimestamps.entrySet())
+        {
+            if(entry.getValue()< oldestTimeStamp){
+                oldestTimeStamp = entry.getValue();
+                oldestProductId = entry.getKey();
             }
         }
+        return oldestProductId;
+    }
+
+    private static Integer getOldestCategoryId() {
+        Integer oldestCategoryId = null;
+        Long oldestTimeStamp = Long.MAX_VALUE;
+
+        for(Map.Entry<Integer,Long> entry : categoryTimestamps.entrySet())
+        {
+            if(entry.getValue()< oldestTimeStamp){
+                oldestTimeStamp = entry.getValue();
+                oldestCategoryId = entry.getKey();
+            }
+        }
+        return oldestCategoryId;
     }
 }
