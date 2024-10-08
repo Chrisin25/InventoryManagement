@@ -51,13 +51,6 @@ public class Product {
         this.productName = productName;
     }
 
-    public Category getCategory() {
-        return category;
-    }
-
-    public void setCategory(Category category) {
-        this.category = category;
-    }
 
     public Double getPrice() {
         return price;

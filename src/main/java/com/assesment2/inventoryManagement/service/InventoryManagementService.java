@@ -5,258 +5,233 @@ import com.assesment2.inventoryManagement.model.Category;
 import com.assesment2.inventoryManagement.model.OrderTable;
 import com.assesment2.inventoryManagement.model.Product;
 import com.assesment2.inventoryManagement.model.User;
-import com.assesment2.inventoryManagement.repository.CategoryRepo;
-import com.assesment2.inventoryManagement.repository.OrderRepo;
-import com.assesment2.inventoryManagement.repository.ProductRepo;
-import com.assesment2.inventoryManagement.repository.UserRepo;
+import com.assesment2.inventoryManagement.repository.*;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.log4j.Logger;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 
+import java.time.Instant;
+import java.util.*;
 
 @Service
 public class InventoryManagementService {
-    @Autowired
-    ProductRepo productRepo;
-    @Autowired
-    CategoryRepo categoryRepo;
-    @Autowired
-    UserRepo userRepo;
-    @Autowired
-    OrderRepo orderRepo;
 
+    private final ProductRepo productRepo;
+
+    private final CategoryRepo categoryRepo;
+
+    private final UserRepo userRepo;
+
+    private final OrderRepo orderRepo;
+
+    public InventoryManagementService(ProductRepo productRepo, CategoryRepo categoryRepo, UserRepo userRepo, OrderRepo orderRepo) {
+        this.productRepo = productRepo;
+        this.categoryRepo = categoryRepo;
+        this.userRepo = userRepo;
+        this.orderRepo = orderRepo;
+    }
+
+    private final Logger logger = Logger.getLogger(InventoryManagementService.class);
 
     @Transactional
     public int addProduct(Product product) {
-        //unique product name
+        // Validate product name
+        if (product.getProductName() == null || product.getProductName().isEmpty()) {
+            throw new IllegalArgumentException("Product name is required");
+        }
 
-        if (!productRepo.findAllByProductName(product.getProductName()).isEmpty()) {
+        // Validate category ID
+        if (product.getCategoryId() == null) {
+            throw new IllegalArgumentException("Category ID is required");
+        }
+
+        // Validate price
+        if (product.getPrice() == null) {
+            throw new IllegalArgumentException("Price is required");
+        }
+
+        // Validate quantity
+        if (product.getQuantity() == null) {
+            throw new IllegalArgumentException("Quantity is required");
+        }
+
+        // Check if product name is unique
+        if (productRepo.existsByProductName(product.getProductName())) {
             throw new IllegalArgumentException("Product name already exists");
         }
-        //valid category
-        else if (categoryRepo.findAllByCategoryId(product.getCategoryId()).isEmpty()) {
-            throw new IllegalArgumentException("Invalid category id");
+
+        // Validate category existence
+        if (!categoryRepo.existsByCategoryId(product.getCategoryId())) {
+            throw new IllegalArgumentException("Invalid category ID");
         }
-        // check price and qty is valid
-        else if (product.getPrice() <= 0) {
+
+        // Validate price and quantity
+        if (product.getPrice() <= 0) {
             throw new IllegalArgumentException("Enter a valid price");
         }
-        else if (product.getQuantity() <= 0) {
-            throw new IllegalArgumentException("Enter valid quantity");
-        }
-        else{
-            List<Product> products = InMemoryCache.getAllProducts();
-            if(!products.isEmpty())
-            {
-                productRepo.save(product);
-                InMemoryCache.putProduct(product);
-                return product.getProductId();
-            }
-            else {
-                productRepo.save(product);
-                return product.getProductId();
-            }
+
+        if (product.getQuantity() <= 0) {
+            throw new IllegalArgumentException("Enter a valid quantity");
         }
 
+        // Save the product and return its ID
+        Product savedProduct= productRepo.save(product);
+        return savedProduct.getProductId();
     }
 
-    public List<Product> getProducts(Integer productId,Integer categoryId){
-        List<Product> products = new ArrayList<>();
-        Product product;
-        if(productId==null && categoryId==null){
-            products = InMemoryCache.getAllProducts();
-            if(products.isEmpty()) {
-                products = productRepo.findAll();
-                InMemoryCache.putAllProducts(products);
-            }
+
+    public Page<Product> getProducts(Integer productId, Integer categoryId, Integer pageNo) {
+        if (pageNo < 1) {
+            throw new IllegalArgumentException("Page number must be a positive integer");
         }
-        else if(categoryId==null){
-            product =InMemoryCache.getProduct(productId);
-            if(product==null) {
-                System.out.println("product empty in cache");
+
+        pageNo -= 1;
+        int pageSize = 25;
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+
+        if (productId == null && categoryId == null) {
+            return productRepo.findAll(pageable);
+        }
+
+        if (categoryId == null) {
+            Product product = InMemoryCache.getProductById(productId);
+            if (product == null) {
                 product = productRepo.findByProductId(productId);
-                if(product==null) {
-                    throw new IllegalArgumentException("Invalid Product ID");
+                if (product == null) {
+                    throw new NoSuchElementException("Invalid Product ID");
                 }
-                else {
-                    InMemoryCache.putProduct(product);
-                    products.add(product);
-                }
+                InMemoryCache.putProduct(product);
             }
-            else {
-                products.add(product);
-            }
+            return new PageImpl<>(Collections.singletonList(product), pageable, 1);
         }
-        else if(productId==null){
-            if(!categoryRepo.existsById(categoryId))
-                throw new IllegalArgumentException("Invalid category ID");
-            products=InMemoryCache.getProductsByCategoryId(categoryId);
-            if(products==null) {
-                products = productRepo.findAllByCategoryId(categoryId);
-                if(products.isEmpty())
-                    throw new IllegalArgumentException("No products found");
-                InMemoryCache.putAllProducts(products);
+
+        if (productId == null) {
+            if (!categoryRepo.existsById(categoryId)) {
+                throw new NoSuchElementException("Invalid category ID");
             }
 
+            boolean productPresent = productRepo.existsAllByCategoryId(categoryId);
+            if (!productPresent) {
+                throw new NoSuchElementException("No products in this category");
+            }
+
+            return productRepo.findAllByCategoryId(categoryId, pageable);
         }
-        else{
-            products=productRepo.findAllByProductIdAndCategoryId(productId,categoryId);
-        }
-        return products;
+
+        List<Product> products = productRepo.findAllByProductIdAndCategoryId(productId, categoryId);
+        return new PageImpl<>(products, pageable, products.size());
     }
+
 
     @Transactional
-    public void deleteProduct(Integer productId){
-        if(productRepo.findAllByProductId(productId).isEmpty()) {
-            throw new IllegalArgumentException("Invalid product ID");
-        }
-        else {
+    public void deleteProduct(Integer productId) {
+        if (!productRepo.existsByProductId(productId)) {
+            throw new NoSuchElementException("Invalid product ID");
+        } else {
             try {
-                List<Product> products = InMemoryCache.getAllProducts();
-                if(!products.isEmpty())
-                {
-                    productRepo.deleteByProductId(productId);
+                Product product = InMemoryCache.getProductById(productId);
+                productRepo.deleteByProductId(productId);
+                if (product == null) {
                     InMemoryCache.deleteProduct(productId);
                 }
-                else {
-                    productRepo.deleteByProductId(productId);
-                }
-
-
             } catch (Exception E) {
-                System.out.println("cannot delete product:" + E.getLocalizedMessage());
+                logger.error("Error deleting product: " + E.getLocalizedMessage());
             }
         }
     }
 
     @Transactional
-    public void updateProduct(Integer productId,String productName,Integer categoryId,Double price,Integer quantity){
-        if(productId==null || productRepo.findAllByProductId(productId).isEmpty()){
-            throw new IllegalArgumentException("Invalid Product ID");
-
-        }
-        else{
-            String flag="no";
-            if(productName==null && categoryId==null && price==null && quantity==null)
-            {
-                throw new IllegalArgumentException("Enter the details to be updated");
+    public void updateProduct(Integer productId, String productName, Integer categoryId, Double price, Integer quantity) {
+        if (productId == null || !productRepo.existsByProductId(productId)) {
+            throw new NoSuchElementException("Invalid Product ID");
+        } else {
+            if (productName == null && categoryId == null && price == null && quantity == null) {
+                throw new NoSuchElementException("Enter the details to be updated");
             }
-            Product product=productRepo.findAllByProductId(productId).get(0);
-            if(productName!=null) {
-                if(productRepo.findAllByProductName(productName).isEmpty()) {
+            Product product = productRepo.findByProductId(productId);
+            if (productName != null) {
+                if (productRepo.existsByProductName(productName)) {
+                    throw new NoSuchElementException("Product with name " + productName + " exists");
+                } else {
                     product.setProductName(productName);
                 }
-                else
-                {
-                    throw new IllegalArgumentException("Product with name " + productName + " exists" );
-                }
             }
 
-            if(categoryId!=null) {
-                if (categoryRepo.existsById(categoryId)) {
-                    if(!Objects.equals(product.getCategoryId(), categoryId)) {
+            if (categoryId != null) {
+                if (!categoryRepo.existsById(categoryId)) {
+                    throw new NoSuchElementException("Invalid Category ID");
+                } else {
+                    if (!Objects.equals(product.getCategoryId(), categoryId)) {
                         product.setCategoryId(categoryId);
-                        flag = "yes";
+                    } else {
+                        throw new NoSuchElementException("Product is under the same category");
                     }
-                    else
-                    {
-                        throw new IllegalArgumentException("Product is under the same category");
-                    }
-                }
-                else
-                {
-                    throw new IllegalArgumentException("Invalid Category ID");
                 }
             }
 
-            if(price!=null) {
-                if (price > 0) {
-                    product.setPrice(price);
-                }
-                else {
-                    throw new IllegalArgumentException("Price should be a valid positive number");
-                }
+            if (price != null) {
+                product.setPrice(price);
             }
 
-            if(quantity!=null){
-                if(quantity>0){
-                    product.setQuantity(product.getQuantity()+quantity);
-                }
-                else if(product.getQuantity()+quantity>=0){
-                    product.setQuantity(product.getQuantity()+quantity);
-                }
-                else{
-                    throw new IllegalArgumentException("Product quantity cannot be updated");
-                }
+            if (quantity != null) {
+                product.setQuantity(product.getQuantity() + quantity);
             }
             productRepo.save(product);
-            InMemoryCache.updateProduct(product,flag);
+            InMemoryCache.updateProduct(product);
         }
-
     }
 
     @Transactional
     public int addCategory(Category category) {
-        if(category.getCategoryName()==null || category.getCategoryName().isEmpty())
-        {
-            throw new IllegalArgumentException("Category name must be valid and not null");
-        }
-        else
-        {
-            Category categoryName = categoryRepo.findByCategoryName(category.getCategoryName());
-            if (categoryName != null) {
-                throw new IllegalArgumentException("Category already exists");
+        if (category.getCategoryName() == null || category.getCategoryName().isEmpty()) {
+            throw new NoSuchElementException("Category name must be valid and not null");
+        } else {
+            if (categoryRepo.existsByCategoryName(category.getCategoryName())) {
+                throw new NoSuchElementException("Category already exists");
             } else {
                 categoryRepo.save(category);
-                List<Category> categories = InMemoryCache.getAllCategories();
-                if(!categories.isEmpty()) {
-                    InMemoryCache.putCategory(category);
-                }
             }
-            return category.getCategoryId();
         }
+        return category.getCategoryId();
     }
 
-    public  List<Category> getCategory(Integer categoryId) {
-        List<Category> categories;
-        if(categoryId == null) {
-            categories = InMemoryCache.getAllCategories();
-            if(categories.isEmpty()) {
-                categories = categoryRepo.findAll();
-                InMemoryCache.putAllCategories(categories);
-            }
+    public List<Category> getCategory(Integer categoryId) {
+        List<Category> categories = new ArrayList<>();
+
+        if (categoryId == null) {
+            categories = categoryRepo.findAll();
         } else {
             Category category = InMemoryCache.getCategory(categoryId);
-            if(category != null) {
-                categories = new ArrayList<>();
+
+            if (category != null) {
                 categories.add(category);
             } else {
-                if(categoryRepo.existsById(categoryId)) {
-                    categories = categoryRepo.findAllByCategoryId(categoryId);
-                    InMemoryCache.putAllCategories(categories);
+                if (categoryRepo.existsById(categoryId)) {
+                    category = categoryRepo.findByCategoryId(categoryId);
+                    InMemoryCache.putCategory(category);
+                    categories.add(category);
                 } else {
-                    throw new IllegalArgumentException("Invalid Category ID");
+                    throw new NoSuchElementException("Invalid Category ID");
                 }
             }
         }
+
         return categories;
     }
 
+
     public void updateCategory(Integer categoryId, String name) {
-        if (categoryId==null || !categoryRepo.existsById(categoryId))
-        {
-            throw new IllegalArgumentException("Invalid category ID");
-        }
-        else {
+        if (categoryId == null || !categoryRepo.existsById(categoryId)) {
+            throw new NoSuchElementException("Invalid category ID");
+        } else {
             Category category = categoryRepo.findByCategoryName(name);
             if (category != null) {
-                throw new IllegalArgumentException("Category already exists");
+                throw new NoSuchElementException("Category already exists");
             } else {
                 Category newCategory = categoryRepo.findAllByCategoryId(categoryId).get(0);
                 newCategory.setCategoryName(name);
@@ -271,119 +246,98 @@ public class InventoryManagementService {
 
     @Transactional
     public void deleteCategory(Integer categoryId) {
-        if (categoryId==null || !categoryRepo.existsById(categoryId))
-        {
-            throw new IllegalArgumentException("Invalid category ID");
-        }
-        else
-        {
-                List<Product> products = productRepo.findAllByCategoryId(categoryId);
-                if(!products.isEmpty())
-                {
-                    throw new IllegalArgumentException("Cannot delete category as there are products associated to this category");
-                }
-                else
-                {
-                    categoryRepo.deleteById(categoryId);
-                    InMemoryCache.deleteCategory(categoryId);
-                }
+        if (categoryId == null || !categoryRepo.existsById(categoryId)) {
+            throw new NoSuchElementException("Invalid category ID");
+        } else {
+            if (productRepo.existsAllByCategoryId(categoryId)) {
+                throw new NoSuchElementException("Cannot delete category as there are products associated to this category");
+            } else {
+                categoryRepo.deleteById(categoryId);
+                InMemoryCache.deleteCategory(categoryId);
+            }
         }
     }
+
 
     @Transactional
     public void orderProduct(Integer productId, Integer quantity, Integer userId) {
-        if(productId==null || productRepo.findAllByProductId(productId).isEmpty()){
-            throw new IllegalArgumentException("Invalid Product ID");
-        }
-        else
-        {
-            if(quantity<0)
-            {
-                throw new IllegalArgumentException("Quantity should be greater than 0");
-            }
-            else
-            {
-                Optional<User> users = userRepo.findById(userId);
-                if(users.isPresent())
-                {
-                     User user = users.get();
-                     String userRole = user.getRole();
 
-                     if(userRole.equalsIgnoreCase("buyer"))
-                     {
-                         OrderTable order = new OrderTable();
-                         Product product = productRepo.findByProductId(productId);
-                         Integer productQuantity = product.getQuantity();
-                         if(productQuantity - quantity >= 0) {
-                             order.setProductId(productId);
-                             order.setUserId(userId);
-                             order.setOrderDate(Instant.now());
+            if (productId == null || !productRepo.existsByProductId(productId)) {
+                throw new NoSuchElementException("Invalid Product ID");
+            } else {
+                if (quantity < 0) {
+                    throw new NoSuchElementException("Quantity should be greater than 0");
+                } else {
+                    Optional<User> users = userRepo.findById(userId);
 
-                             product.setQuantity(productQuantity - quantity);
+                    if (users.isPresent()) {
+                        User user = users.get();
+                        String userRole = user.getRole();
 
-                             orderRepo.save(order);
-                             productRepo.save(product);
-                             Product productCache = InMemoryCache.getProductById(productId);
-                             if(productCache!=null)
-                             {
-                                 InMemoryCache.updateProductQuantity(product);
-                             }
-                         }
-                         else {
-                             throw new IllegalArgumentException("Insufficient product quantity. Available quantity: " + productQuantity);
-                         }
-                     }
-                     else
-                     {
-                         throw new IllegalArgumentException("Not a valid user");
-                     }
-                }
-                else
-                {
-                    throw new IllegalArgumentException("Invalid User ID");
+                        if (userRole.equalsIgnoreCase("buyer")) {
+                            OrderTable order = new OrderTable();
+                            Product product = productRepo.findByProductId(productId);
+
+                            Integer productQuantity = product.getQuantity();
+                            if (productQuantity - quantity >= 0) {
+                                order.setProductId(productId);
+                                order.setUserId(userId);
+                                order.setOrderDate(Instant.now());
+
+                                product.setQuantity(productQuantity - quantity);
+
+                                orderRepo.save(order);
+                                productRepo.save(product);
+
+                                Product productCache = InMemoryCache.getProductById(productId);
+                                if (productCache != null) {
+                                    InMemoryCache.updateProductQuantity(product);
+                                }
+                            } else {
+                                throw new NoSuchElementException("Insufficient product quantity. Available quantity: " + productQuantity);
+                            }
+                        } else {
+                            throw new NoSuchElementException("Not a valid user");
+                        }
+                    } else {
+                        throw new NoSuchElementException("Invalid User ID");
+                    }
                 }
             }
-        }
+
     }
 
+    @Transactional
     public void reStockProduct(Integer productId, Integer quantity, Integer userId) {
-        if(productId==null || productRepo.findAllByProductId(productId).isEmpty()){
-            throw new IllegalArgumentException("Invalid Product ID");
-        }
-        else
-        {
-            if(quantity<0)
-            {
-                throw new IllegalArgumentException("Quantity should be greater than 0");
-            }
-            else
-            {
-                Optional<User> users = userRepo.findById(userId);
-                if(users.isPresent())
-                {
-                    User user = users.get();
-                    String userRole = user.getRole();
-                    Product product = productRepo.findByProductId(productId);
-                    if(userRole.equalsIgnoreCase("seller"))
-                    {
-                        product.setQuantity(product.getQuantity() + quantity);
-                        productRepo.save(product);
-                        Product productCache = InMemoryCache.getProductById(productId);
-                        if(productCache!=null)
-                        {
-                            InMemoryCache.updateProductQuantity(product);
+            if (productId == null || !productRepo.existsByProductId(productId)) {
+                throw new NoSuchElementException("Invalid Product ID");
+            } else {
+                if (quantity < 0) {
+                    throw new NoSuchElementException("Quantity should be greater than 0");
+                } else {
+                    Optional<User> users = userRepo.findById(userId);
+
+                    if (users.isPresent()) {
+                        User user = users.get();
+                        String userRole = user.getRole();
+                        Product product = productRepo.findByProductId(productId);
+
+                        if (userRole.equalsIgnoreCase("seller")) {
+                            product.setQuantity(product.getQuantity() + quantity);
+                            productRepo.save(product);
+
+                            Product productCache = InMemoryCache.getProductById(productId);
+                            if (productCache != null) {
+                                InMemoryCache.updateProductQuantity(product);
+                            }
+                        } else {
+                            throw new NoSuchElementException("Not a valid user");
                         }
+                    } else {
+                        throw new NoSuchElementException("Invalid User ID");
                     }
-                    else
-                    {
-                        throw new IllegalArgumentException("Not a valid user");
-                    }
-                }
-                else
-                {
-                    throw new IllegalArgumentException("Invalid User ID");
                 }
             }
-        }
+
     }
 }

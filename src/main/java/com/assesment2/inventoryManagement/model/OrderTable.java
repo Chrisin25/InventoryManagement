@@ -12,41 +12,24 @@ public class OrderTable {
     Integer orderId;
     Integer productId;
     @ManyToOne
-    @JoinColumn(name = "productId",insertable=false, updatable=false)
+    @JoinColumn(name = "productId", insertable = false, updatable = false)
     private Product product;
     Integer userId;
     @ManyToOne
-    @JoinColumn(name = "userId",insertable=false, updatable=false)
+    @JoinColumn(name = "userId", insertable = false, updatable = false)
     private User user;
     Instant orderDate;
 
-    public int getOrderId() {
-        return orderId;
-    }
-
-    public void setOrderId(int orderId) {
-        this.orderId = orderId;
-    }
-
-    public int getProductId() {
-        return productId;
-    }
 
     public void setProductId(int productId) {
         this.productId = productId;
     }
 
-    public int getUserId() {
-        return userId;
-    }
 
     public void setUserId(int userId) {
         this.userId = userId;
     }
 
-    public Instant getOrderDate() {
-        return orderDate;
-    }
 
     public void setOrderDate(Instant orderDate) {
         this.orderDate = orderDate;
