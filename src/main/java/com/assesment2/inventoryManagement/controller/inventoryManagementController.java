@@ -66,9 +66,11 @@ public class inventoryManagementController {
             @RequestParam(required = false) Integer quantity) {
 
         inventoryManagementService.updateProduct(productId,productName,categoryId,price,quantity);
+
         ResponseMessage responseMessage = new ResponseMessage();
         responseMessage.setMessage("Successfully updated product details");
         return new ResponseEntity<>(responseMessage,HttpStatus.OK);
+
     }
 
     //change category name
@@ -78,9 +80,11 @@ public class inventoryManagementController {
             @RequestParam String name
     ){
         inventoryManagementService.updateCategory(categoryId,name);
+
         ResponseMessage responseMessage = new ResponseMessage();
         responseMessage.setMessage("Successfully updated category name");
         return new ResponseEntity<>(responseMessage,HttpStatus.OK);
+
     }
 
     //delete a product using its id
@@ -89,8 +93,10 @@ public class inventoryManagementController {
             @RequestParam int productId
     ){
         inventoryManagementService.deleteProduct(productId);
+
         ResponseMessage responseMessage = new ResponseMessage();
         responseMessage.setMessage("Successfully deleted product");
+
         return new ResponseEntity<>(responseMessage,HttpStatus.OK);
     }
 
@@ -100,8 +106,10 @@ public class inventoryManagementController {
             @RequestParam int categoryId
     ){
         inventoryManagementService.deleteCategory(categoryId);
+
         ResponseMessage responseMessage = new ResponseMessage();
         responseMessage.setMessage("Successfully deleted category");
+
         return new ResponseEntity<>(responseMessage,HttpStatus.OK);
     }
 
@@ -112,8 +120,11 @@ public class inventoryManagementController {
             @RequestParam Integer quantity,
             @RequestParam Integer userId ){
         inventoryManagementService.orderProduct(productId,quantity,userId);
+
         ResponseMessage responseMessage = new ResponseMessage();
         responseMessage.setMessage("Successfully ordered");
+
+
         return new ResponseEntity<>(responseMessage,HttpStatus.OK);
     }
 
@@ -124,8 +135,10 @@ public class inventoryManagementController {
             @RequestParam Integer quantity,
             @RequestParam Integer userId ){
         inventoryManagementService.reStockProduct(productId,quantity,userId);
+
         ResponseMessage responseMessage = new ResponseMessage();
         responseMessage.setMessage("Successfully restocked");
+
         return new ResponseEntity<>(responseMessage,HttpStatus.OK);
     }
 }

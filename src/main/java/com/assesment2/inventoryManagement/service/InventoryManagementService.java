@@ -60,6 +60,7 @@ public class InventoryManagementService {
             throw new IllegalArgumentException("Quantity is required");
         }
 
+
         // Check if product name is unique
         if (productRepo.existsByProductName(product.getProductName())) {
             throw new IllegalArgumentException("Product name already exists");
@@ -68,6 +69,7 @@ public class InventoryManagementService {
         // Validate category existence
         if (!categoryRepo.existsByCategoryId(product.getCategoryId())) {
             throw new IllegalArgumentException("Invalid category ID");
+
         }
 
         // Validate price and quantity
@@ -129,10 +131,12 @@ public class InventoryManagementService {
 
 
     @Transactional
+
     public void deleteProduct(Integer productId) {
         if (!productRepo.existsByProductId(productId)) {
             throw new NoSuchElementException("Invalid product ID");
         } else {
+
             try {
                 Product product = InMemoryCache.getProductById(productId);
                 productRepo.deleteByProductId(productId);
@@ -146,6 +150,7 @@ public class InventoryManagementService {
     }
 
     @Transactional
+
     public void updateProduct(Integer productId, String productName, Integer categoryId, Double price, Integer quantity) {
         if (productId == null || !productRepo.existsByProductId(productId)) {
             throw new NoSuchElementException("Invalid Product ID");
@@ -262,6 +267,7 @@ public class InventoryManagementService {
     @Transactional
     public void orderProduct(Integer productId, Integer quantity, Integer userId) {
 
+
             if (productId == null || !productRepo.existsByProductId(productId)) {
                 throw new NoSuchElementException("Invalid Product ID");
             } else {
@@ -302,6 +308,7 @@ public class InventoryManagementService {
                     } else {
                         throw new NoSuchElementException("Invalid User ID");
                     }
+
                 }
             }
 
@@ -309,6 +316,7 @@ public class InventoryManagementService {
 
     @Transactional
     public void reStockProduct(Integer productId, Integer quantity, Integer userId) {
+
             if (productId == null || !productRepo.existsByProductId(productId)) {
                 throw new NoSuchElementException("Invalid Product ID");
             } else {
@@ -332,6 +340,7 @@ public class InventoryManagementService {
                             }
                         } else {
                             throw new NoSuchElementException("Not a valid user");
+
                         }
                     } else {
                         throw new NoSuchElementException("Invalid User ID");

@@ -14,7 +14,9 @@ public interface CategoryRepo extends JpaRepository<Category,Integer>{
 
     boolean existsByCategoryId(Integer categoryId);
 
+
     boolean existsByCategoryName(String categoryName);
 
     Category findByCategoryId(Integer categoryId);
+
 }
