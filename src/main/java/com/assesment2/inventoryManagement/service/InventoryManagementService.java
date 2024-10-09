@@ -196,7 +196,7 @@ public class InventoryManagementService {
         if (category.getCategoryName() == null || category.getCategoryName().isEmpty()) {
             throw new NoSuchElementException("Category name must be valid and not null");
         } else {
-            if (categoryRepo.existsByCategoryName(category.getCategoryName())) {
+            if (categoryRepo.existsByCategoryName(category.getCategoryName())||categoryRepo.existsByCategoryId(category.getCategoryId())) {
                 throw new NoSuchElementException("Category already exists");
             } else {
                 categoryRepo.save(category);
