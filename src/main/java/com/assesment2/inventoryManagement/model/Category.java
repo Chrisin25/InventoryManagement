@@ -10,9 +10,7 @@ public class Category {
     Integer categoryId;
     String categoryName;
 
-    public Integer getCategoryId() {
-        return categoryId;
-    }
+    public Integer getCategoryId() {return categoryId; }
 
     public void setCategoryId(Integer categoryId) {
         this.categoryId = categoryId;

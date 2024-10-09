@@ -9,6 +9,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 public class InventoryManagementApplication {
 
 	public static void main(String[] args) {
+
 		SpringApplication.run(InventoryManagementApplication.class, args);
 	}
 

@@ -20,6 +20,8 @@ public interface ProductRepo extends JpaRepository<Product,Integer>{
 
     Page<Product> findAllByCategoryId(Integer categoryId,Pageable pageable);
 
+  
+
     List<Product> findAllByProductIdAndCategoryId(Integer productId, Integer categoryId);
 
     void deleteByProductId(Integer productId);
@@ -27,6 +29,7 @@ public interface ProductRepo extends JpaRepository<Product,Integer>{
     Product findByProductId(Integer productId);
 
     boolean existsByProductName(String productName);
+
 
     boolean existsAllByCategoryId(Integer categoryId);
 
