@@ -401,7 +401,7 @@ public class InventoryManagementApplicationTests {
 				inventoryManagementService.getProducts(null, null, pageNo)
 		);
 
-		assertEquals("Page number must be a positive integer", result.getMessage());
+		assertEquals("Page number must be a positive integer greater than 0", result.getMessage());
 	}
 
 
@@ -844,6 +844,7 @@ public class InventoryManagementApplicationTests {
 		Product product = new Product();
 		product.setProductId(productId); // Ensure product ID is set
 		product.setQuantity(10);
+		product.setPrice(500.0);
 
 		User user = new User();
 		user.setRole("buyer");
