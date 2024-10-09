@@ -19,7 +19,19 @@ public class OrderTable {
     @JoinColumn(name = "userId", insertable = false, updatable = false)
     private User user;
     Instant orderDate;
+    Integer quantity;
+    Double totalPrice;
 
+
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
+
+
+    public void setTotalPrice(Double totalPrice) {
+        this.totalPrice = totalPrice;
+    }
 
     public void setProductId(int productId) {
         this.productId = productId;

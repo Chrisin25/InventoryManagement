@@ -40,6 +40,10 @@ public class InventoryManagementService {
 
     @Transactional
     public int addProduct(Product product) {
+        if(product.getProductId()!=null)
+        {
+            throw new IllegalArgumentException("ID should be auto-generated");
+        }
         // Validate product name
         if (product.getProductName() == null || product.getProductName().isEmpty()) {
             throw new IllegalArgumentException("Product name is required");
@@ -87,7 +91,7 @@ public class InventoryManagementService {
 
     public Page<Product> getProducts(Integer productId, Integer categoryId, Integer pageNo) {
         if (pageNo < 1) {
-            throw new IllegalArgumentException("Page number must be a positive integer");
+            throw new IllegalArgumentException("Page number must be a positive integer greater than 0");
         }
 
         pageNo -= 1;
@@ -124,7 +128,13 @@ public class InventoryManagementService {
         }
 
         List<Product> products = productRepo.findAllByProductIdAndCategoryId(productId, categoryId);
+
+        if (products.isEmpty()) {
+            throw new NoSuchElementException("No products found for the given productId and categoryId");
+        }
+
         return new PageImpl<>(products, pageable, products.size());
+
     }
 
 
@@ -175,12 +185,20 @@ public class InventoryManagementService {
             }
 
             if (price != null) {
+                if(price <=0)
+                {
+                    throw new IllegalArgumentException("Price should be greater than 0");
+                }
                 product.setPrice(price);
             }
 
             if (quantity != null) {
+                if (product.getQuantity() + quantity < 0) {
+                    throw new IllegalArgumentException("Quantity cannot be negative");
+                }
                 product.setQuantity(product.getQuantity() + quantity);
             }
+
             productRepo.save(product);
             InMemoryCache.updateProduct(product);
         }
@@ -188,6 +206,10 @@ public class InventoryManagementService {
 
     @Transactional
     public int addCategory(Category category) {
+        if(category.getCategoryId()!=null)
+        {
+            throw new IllegalArgumentException("ID should be auto-generated");
+        }
         if (category.getCategoryName() == null || category.getCategoryName().isEmpty()) {
             throw new NoSuchElementException("Category name must be valid and not null");
         } else {
@@ -283,7 +305,8 @@ public class InventoryManagementService {
                                 order.setProductId(productId);
                                 order.setUserId(userId);
                                 order.setOrderDate(Instant.now());
-
+                                order.setQuantity(quantity);
+                                order.setTotalPrice(quantity*product.getPrice());
                                 product.setQuantity(productQuantity - quantity);
 
                                 orderRepo.save(order);
